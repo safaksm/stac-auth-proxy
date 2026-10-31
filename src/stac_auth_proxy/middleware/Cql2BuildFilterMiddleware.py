@@ -4,7 +4,7 @@ import logging
 from dataclasses import dataclass
 from typing import Any, Awaitable, Callable, Optional
 
-from cql2 import Expr, ValidationError
+from cql2 import Expr, ValidationError, Validator
 from fastapi import HTTPException
 from starlette.requests import Request
 from starlette.responses import JSONResponse
@@ -16,6 +16,8 @@ from ..utils.middleware import bad_request, required_conformance
 from ..utils.requests import match_path
 
 logger = logging.getLogger(__name__)
+
+validator = Validator()
 
 
 @required_conformance(
@@ -113,7 +115,7 @@ class Cql2BuildFilterMiddleware:
 
         cql2_filter = Expr(filter_expr)
         try:
-            cql2_filter.validate()
+            validator.validate(cql2_filter)
         except ValidationError:
             logger.error("Invalid CQL2 filter: %s", filter_expr)
             response = JSONResponse({"detail": "Invalid CQL2 filter"}, status_code=502)
